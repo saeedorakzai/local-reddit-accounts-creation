@@ -47,3 +47,4 @@ reports/*
 
 # Do not ship the old AdsPower reference tree (kept outside this repo)
 reddit-accounts/
+config/app.js
