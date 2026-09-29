@@ -1,0 +1,6 @@
+# Optional: copy values from environment or keep secrets out of git.
+# Format (key:value) — do not commit real passwords.
+# host: 127.0.0.1
+# port: 8080
+# username: example
+# password: use PROXY_PASSWORD in .env instead

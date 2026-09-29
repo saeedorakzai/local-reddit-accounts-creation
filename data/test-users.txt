@@ -1,0 +1,4 @@
+# id|email|password|username|preference
+user-001|alice.test@example.com|TestPass111|alice_test|email
+user-002|bob.test@example.com|TestPass222|bob_test|sms
+user-003|carol.test@example.com|TestPass333|carol_test|none

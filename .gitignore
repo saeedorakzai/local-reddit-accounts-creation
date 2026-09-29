@@ -1,0 +1,49 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+
+# Local credentials & proxy (never commit)
+email data.txt
+proxy details
+processed-emails.txt
+
+# Runtime / browser state
+logs/
+screenshots/
+.firefox-profiles/
+*.log
+*.tmp
+.DS_Store
+coverage/
+
+# Creation-flow runtime data (confidential outputs + queues)
+data/mailbox/
+data/state.json
+data/state.json.lock
+data/logins.csv
+data/adspower.json
+data/processed.csv
+data/processed.csv.*
+data/reddit-accounts.csv
+data/reddit-accounts.csv.*
+data/*.bak
+data/*.bak2
+data/*-ids.json
+data/*-ids.txt
+data/backfill-*
+data/brand-tags.json
+data/report-tags.json
+data/profile-updates.csv
+data/all-time-banned*
+data/Screenshot*
+
+# Diagnostics / reports may contain emails & DOM dumps
+diagnostics/*
+!diagnostics/.gitkeep
+reports/*
+!reports/.gitkeep
+
+# Do not ship the old AdsPower reference tree (kept outside this repo)
+reddit-accounts/

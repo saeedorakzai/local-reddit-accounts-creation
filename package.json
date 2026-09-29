@@ -1,0 +1,49 @@
+{
+  "name": "creation-flow",
+  "version": "1.0.0",
+  "description": "Cross-platform Firefox browser automation with profiles, proxy, mail, and resumable workflows",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "test:browser": "node --import tsx --test tests/browser.test.ts",
+    "test:profile": "node --import tsx --test tests/profile.test.ts",
+    "test:proxy": "node --import tsx --test tests/proxy.test.ts",
+    "test:mail": "node --import tsx --test tests/mail.test.ts",
+    "test:state": "node --import tsx --test tests/state.test.ts",
+    "test:workflow": "node --import tsx --test tests/workflow.test.ts",
+    "test:server": "node --import tsx src/testServer/server.ts",
+    "workflow:test": "node --import tsx src/cli/runWorkflow.ts --mode=one",
+    "workflow:test:all": "node --import tsx src/cli/runWorkflow.ts --mode=all",
+    "workflow:test:set": "node --import tsx src/cli/runWorkflow.ts --mode=set",
+    "create": "node src/creation/index.cjs",
+    "create:one": "node src/creation/index.cjs --one",
+    "create:accounts": "node src/creation/index.cjs --accounts",
+    "create:inspect": "node src/creation/index.cjs --inspect",
+    "create:inspect:safe": "node src/creation/index.cjs --inspect --safe",
+    "create:inspect:reddit": "node src/creation/index.cjs --inspect-reddit",
+    "create:help": "node src/creation/index.cjs --help"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "playwright",
+    "firefox",
+    "automation",
+    "workflow"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "csv-parse": "^5.6.0",
+    "dotenv": "^16.4.7",
+    "playwright": "^1.50.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
