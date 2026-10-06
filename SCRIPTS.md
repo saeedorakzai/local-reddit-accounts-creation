@@ -17,17 +17,16 @@ Open PowerShell in the project folder (or `cd` there).
 Set-ExecutionPolicy -Scope Process Bypass
 cd $HOME\Downloads\local-reddit-accounts-creation
 git pull
-.\scripts\windows\setup.ps1
+npm install
+npx playwright install firefox
+.\scripts\windows\fix-env.ps1
+notepad .\.env
 ```
 
-Put `email data.txt` and `proxy details` in the project root. Edit `.env` (created by setup).
+`.env` must include `USE_SYSTEM_FIREFOX=true` and `PROXY_ENABLED=true`.  
+`fix-env.ps1` renames `.env.txt` → `.env` and `proxy details.txt` → `proxy details`.
 
-Optional Mozilla Firefox instead of Playwright Nightly — in `.env`:
-
-```env
-USE_SYSTEM_FIREFOX=true
-PROXY_ENABLED=true
-```
+Put `email data.txt` and `proxy details` in the project root.
 
 ### Daily run
 
@@ -35,9 +34,11 @@ PROXY_ENABLED=true
 cd $HOME\Downloads\local-reddit-accounts-creation
 
 .\scripts\windows\create-accounts.ps1   # list emails (no browser)
-.\scripts\windows\create-one.ps1        # smoke test first email
+.\scripts\windows\create-one.ps1        # smoke test first email (Mozilla)
 .\scripts\windows\create-all.ps1        # full queue
 ```
+
+Expect: `Using Mozilla Firefox: C:\Program Files\Mozilla Firefox\firefox.exe`
 
 Or plain npm (same thing):
 
