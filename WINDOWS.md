@@ -18,7 +18,13 @@ On Windows it still uses **Playwright’s Firefox**, not the Mozilla installer f
 | Playwright Firefox | installed via npm (step 4) | The browser the bot actually launches |
 | Optional: Microsoft Visual C++ Redistributable | current x64 | Playwright binaries sometimes need it |
 
-Do **not** point `FIREFOX_PATH` at `C:\Program Files\Mozilla Firefox\firefox.exe`. That is a different binary and Playwright will fail or behave oddly.
+Do **not** point `FIREFOX_PATH` at a broken path. Prefer:
+
+```env
+USE_SYSTEM_FIREFOX=true
+```
+
+or a valid `FIREFOX_PATH` to `firefox.exe`. Leave both unset to use Playwright’s Firefox. Details: [PROFILES.md](PROFILES.md).
 
 ---
 
@@ -173,20 +179,14 @@ npm run create:inspect -- --email=someone@outlook.com
 
 | Topic | Windows behavior |
 |--------|------------------|
-| Browser | Playwright Firefox window (`HEADLESS=false`). Not system Mozilla Firefox. |
-| Profiles | `.\.firefox-profiles\ff-<email>\` — same isolation as Linux/Mac; path uses backslashes in logs |
-| Cookies | Stay in that folder; a re-run of the same email often skips Outlook login |
-| Proxy | Playwright HTTP proxy from `proxy details` / `.env` |
-| Outlook | Same screen table. Windows Hello / passkeys are blocked in-page; Microsoft should fall back to password |
-| Reddit | New tab in the same Firefox context; OTP still scraped from Outlook in this browser |
+| Browser (default) | Playwright Firefox (Nightly). Not listed in system `about:profiles`. |
+| Browser (Mozilla) | Set `USE_SYSTEM_FIREFOX=true` after installing Firefox from mozilla.org — see [PROFILES.md](PROFILES.md) |
+| Profiles | `.\.firefox-profiles\ff-<email>\` — reopen with `firefox.exe -no-remote -profile "…"` |
+| Proxy | HTTP or SOCKS5 via `proxy details` + prefs in profile `user.js` |
+| Cookies | Stay in that folder; re-run often skips Outlook login |
+| Outlook | Passkeys blocked in-page; password path preferred |
+| Reddit | New tab; OTP from Outlook in same browser |
 | Output | `data\reddit-accounts.csv` |
-| File locks | If Firefox did not exit cleanly, Windows holds `parent.lock`. The launcher deletes stale locks; if a **live** Firefox still uses the profile, close it |
-| Encoding | `email data.txt` may be UTF-8 or UTF-16 (Notepad). Both parse |
-| Filenames | `email data.txt` and `proxy details` work; no need to rename |
-| Keyboard | Select-all uses Ctrl+A (not Cmd) |
-| Long paths | Profile names are shortened/sanitized; enable Windows long paths only if a deep cache path errors |
-
-The bot does **not** use AdsPower, geckodriver, or Selenium on Windows.
 
 ---
 

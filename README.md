@@ -86,7 +86,7 @@ CarsenLatva53139@outlook.com
 
 Playwright launches Firefox with `launchPersistentContext` + optional proxy. Cookies stay in that folder so re-runs can reuse Outlook sessions.
 
-On Windows the folder is `.firefox-profiles\ff-<email>\` and the browser is still Playwright Firefox (not the Mozilla installer). See [WINDOWS.md](WINDOWS.md).
+On Windows the folder is `.firefox-profiles\ff-<email>\`. Default browser is Playwright Firefox; set `USE_SYSTEM_FIREFOX=true` for installed Mozilla Firefox. Proxy (HTTP/SOCKS5) is documented in [PROFILES.md](PROFILES.md). Full Windows install: [WINDOWS.md](WINDOWS.md).
 
 ## Config
 

@@ -33,6 +33,10 @@ module.exports = {
             String(process.env.HEADLESS || 'false').toLowerCase()
         ),
         slowMoMs: Number(process.env.SLOW_MO || 0) || 0,
+        // true = launch system Mozilla Firefox (about:-compatible profile dirs via -profile)
+        useSystemFirefox: ['1', 'true', 'yes', 'on'].includes(
+            String(process.env.USE_SYSTEM_FIREFOX || 'false').toLowerCase()
+        ),
         executablePath:
             process.env.PLAYWRIGHT_FIREFOX_EXECUTABLE_PATH ||
             process.env.FIREFOX_PATH ||
@@ -40,6 +44,7 @@ module.exports = {
         proxyEnabled: !['0', 'false', 'no', 'off'].includes(
             String(process.env.PROXY_ENABLED || 'true').toLowerCase()
         ),
+        proxyType: process.env.PROXY_TYPE || '',
         proxyFile: process.env.PROXY_FILE || 'proxy details',
         proxyHost: process.env.PROXY_HOST || '',
         proxyPort: process.env.PROXY_PORT ? Number(process.env.PROXY_PORT) : null,
