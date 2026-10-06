@@ -1,0 +1,251 @@
+================================================================================
+WINDOWS POWERSHELL — COPY/PASTE (local-reddit-accounts-creation)
+================================================================================
+Change THIS path once if your clone lives somewhere else:
+--------------------------------------------------------------------------------
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+
+# Then every block below uses:  Set-Location $Project
+
+================================================================================
+0) ALLOW .ps1 SCRIPTS (this PowerShell window only)
+================================================================================
+
+Set-ExecutionPolicy -Scope Process Bypass
+
+
+================================================================================
+1) FIRST CLONE (skip if folder already exists)
+================================================================================
+
+cd $HOME\Downloads
+git clone https://github.com/saeedorakzai/local-reddit-accounts-creation.git
+# SSH alternative:
+# git clone git@github.com:saeedorakzai/local-reddit-accounts-creation.git
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+
+
+================================================================================
+2) LATEST PULL + SETUP (deps + Playwright Firefox + .env)
+================================================================================
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+
+git pull
+.\scripts\windows\setup.ps1
+
+# Same thing without the .ps1 helper:
+# git pull
+# npm install
+# npx playwright install firefox
+# if (-not (Test-Path .\.env)) { Copy-Item .\.env.example .\.env }
+
+
+================================================================================
+3) PUT YOUR SECRET FILES IN THE PROJECT FOLDER
+================================================================================
+Folder must be:
+
+  $HOME\Downloads\local-reddit-accounts-creation\
+
+Files (same folder as package.json):
+
+  email data.txt
+  proxy details
+  .env
+
+Open that folder in Explorer:
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+explorer $Project
+
+
+--------------------------------------------------------------------------------
+3a) email data.txt  (example lines — replace with yours)
+--------------------------------------------------------------------------------
+
+uuid	'Name@outlook.com		password
+email,,password
+
+
+--------------------------------------------------------------------------------
+3b) proxy details  — HTTP
+--------------------------------------------------------------------------------
+
+http
+host: 1.2.3.4
+port: 8004
+username: yourUser
+password : yourPass
+
+
+--------------------------------------------------------------------------------
+3c) proxy details  — SOCKS5
+--------------------------------------------------------------------------------
+
+socks5
+host: 1.2.3.4
+port: 1080
+username: yourUser
+password : yourPass
+
+
+--------------------------------------------------------------------------------
+3d) .env  — recommended Windows values
+--------------------------------------------------------------------------------
+Edit with notepad:
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+notepad "$Project\.env"
+
+Paste / set:
+
+HEADLESS=false
+SLOW_MO=0
+PROXY_ENABLED=true
+PROXY_FILE=proxy details
+TEST_USERS_FILE=email data.txt
+PROFILES_DIR=.firefox-profiles
+USE_SYSTEM_FIREFOX=false
+
+# No proxy? set:
+# PROXY_ENABLED=false
+
+
+================================================================================
+4) MOZILLA FIREFOX (optional — instead of Playwright Nightly)
+================================================================================
+Install Firefox from https://www.mozilla.org/firefox/ then either:
+
+A) Auto-detect Mozilla:
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+# In .env set:
+# USE_SYSTEM_FIREFOX=true
+
+B) Pin exact path:
+
+# In .env set:
+# FIREFOX_PATH=C:\Program Files\Mozilla Firefox\firefox.exe
+# USE_SYSTEM_FIREFOX=true
+
+
+================================================================================
+5) LIST ACCOUNTS (no browser) — check email data.txt parses
+================================================================================
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+
+.\scripts\windows\create-accounts.ps1
+
+# or:
+# npm run create:accounts
+
+
+================================================================================
+6) SMOKE TEST — FIRST EMAIL ONLY (opens Firefox)
+================================================================================
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+
+.\scripts\windows\create-one.ps1
+
+# or:
+# npm run create:one
+
+
+================================================================================
+7) FULL FLOW — EVERY EMAIL IN email data.txt
+================================================================================
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+
+.\scripts\windows\create-all.ps1
+
+# or:
+# npm run create
+
+
+================================================================================
+8) INSPECT / DEBUG
+================================================================================
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+
+.\scripts\windows\inspect.ps1 -Email someone@outlook.com
+.\scripts\windows\inspect.ps1 -Email someone@outlook.com -Safe
+
+# npm form (extra -- required in PowerShell):
+# npm run create:inspect -- --email=someone@outlook.com
+
+
+================================================================================
+9) OPEN A PROFILE FOLDER MANUALLY (Mozilla Firefox)
+================================================================================
+Profiles live here:
+
+  $HOME\Downloads\local-reddit-accounts-creation\.firefox-profiles\ff-<email>\
+
+Helper:
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+
+.\scripts\windows\open-profile.ps1 -Email someone@outlook.com
+
+# or by folder id:
+# .\scripts\windows\open-profile.ps1 -ProfileId ff-someone_outlook.com
+
+# manual one-liner:
+# & "C:\Program Files\Mozilla Firefox\firefox.exe" -no-remote -profile "$Project\.firefox-profiles\ff-someone_outlook.com"
+
+
+================================================================================
+10) RESET ONE STUCK PROFILE
+================================================================================
+
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+
+# Close Firefox first, then:
+Remove-Item -Recurse -Force .\.firefox-profiles\ff-someone_outlook.com
+
+# then re-run:
+.\scripts\windows\create-one.ps1
+
+
+================================================================================
+11) WHERE OUTPUT GOES
+================================================================================
+
+  Reddit CSV:   $Project\data\reddit-accounts.csv
+  Profiles:     $Project\.firefox-profiles\
+  Proxy prefs:  each profile's user.js (written by the bot)
+
+
+================================================================================
+QUICK ALL-IN-ONE (after clone + email data.txt + proxy details exist)
+================================================================================
+
+Set-ExecutionPolicy -Scope Process Bypass
+$Project = "$HOME\Downloads\local-reddit-accounts-creation"
+Set-Location $Project
+git pull
+.\scripts\windows\setup.ps1
+.\scripts\windows\create-accounts.ps1
+.\scripts\windows\create-one.ps1
+# when smoke test looks good:
+# .\scripts\windows\create-all.ps1
+
+================================================================================
+END
+================================================================================
