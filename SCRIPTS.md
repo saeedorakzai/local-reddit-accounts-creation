@@ -3,10 +3,69 @@
 ## Independence
 
 This repo is standalone. The old AdsPower `reddit-accounts` tree lives outside
-this project (e.g. `~/Downloads/reddit-accounts`) and is **not required**.
+this project and is **not required**.
 
+---
 
-## Run (local Firefox Reddit creation)
+## Windows PowerShell (copy-paste)
+
+Open PowerShell in the project folder (or `cd` there).
+
+### First time / after git pull
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+cd $HOME\Downloads\local-reddit-accounts-creation
+git pull
+.\scripts\windows\setup.ps1
+```
+
+Put `email data.txt` and `proxy details` in the project root. Edit `.env` (created by setup).
+
+Optional Mozilla Firefox instead of Playwright Nightly — in `.env`:
+
+```env
+USE_SYSTEM_FIREFOX=true
+PROXY_ENABLED=true
+```
+
+### Daily run
+
+```powershell
+cd $HOME\Downloads\local-reddit-accounts-creation
+
+.\scripts\windows\create-accounts.ps1   # list emails (no browser)
+.\scripts\windows\create-one.ps1        # smoke test first email
+.\scripts\windows\create-all.ps1        # full queue
+```
+
+Or plain npm (same thing):
+
+```powershell
+npm run create:accounts
+npm run create:one
+npm run create
+```
+
+### Inspect / open profile
+
+```powershell
+.\scripts\windows\inspect.ps1 -Email someone@outlook.com
+.\scripts\windows\inspect.ps1 -Email someone@outlook.com -Safe
+.\scripts\windows\open-profile.ps1 -Email someone@outlook.com
+```
+
+npm equivalent (extra `--` required in PowerShell):
+
+```powershell
+npm run create:inspect -- --email=someone@outlook.com
+```
+
+Full Windows guide: [WINDOWS.md](WINDOWS.md) · Profiles/proxy: [PROFILES.md](PROFILES.md)
+
+---
+
+## Run (Linux / macOS / any shell)
 
 ```bash
 npm run create:accounts   # parse email data.txt — no browser
@@ -28,7 +87,7 @@ npm run create            # full queue
 npm run create:inspect -- --email=someone@outlook.com
 ```
 
-On Windows PowerShell the extra `--` is required so `--email` reaches Node.
+---
 
 ## Email file formats (`email data.txt`)
 
@@ -40,39 +99,36 @@ uuid,''Email@outlook.com,,password,,,,,,,,,,,,
 
 Leading `'` on the email is stripped.
 
-## Firefox profiles — how they work
+---
+
+## Firefox profiles
 
 ```text
 email data.txt
     └─ CarsenLatva53139@outlook.com
            └─ profileId: ff-carsenlatva53139_outlook.com
                   └─ .firefox-profiles/ff-carsenlatva53139_outlook.com/
-                         ├─ creation-flow.profile   (marker)
-                         └─ (Firefox cookies, storage, cache…)
+                         ├─ creation-flow.profile
+                         ├─ user.js          (proxy prefs)
+                         └─ cookies / storage…
 ```
 
 | Step | What happens |
 |------|----------------|
-| First `create` for an email | Create folder under `.firefox-profiles/`, launch Playwright Firefox with that dir + proxy |
-| Outlook / Reddit | Same browser context; Reddit opens in a **new tab** |
-| Later re-run same email | Reuses the same folder → often still logged into Outlook |
-| Success output | Row appended to `data/reddit-accounts.csv` |
+| First `create` for an email | Create folder, launch Firefox + proxy |
+| Outlook / Reddit | Same browser; Reddit in a **new tab** |
+| Later re-run same email | Reuses folder → often still logged into Outlook |
+| Success | Row in `data/reddit-accounts.csv` |
 
-Profiles are **not** AdsPower instances. They are local Playwright persistent contexts. Isolation = one directory per email (cookies don’t mix).
+Default browser = Playwright Firefox. Set `USE_SYSTEM_FIREFOX=true` for Mozilla.
 
-To force a clean browser for one account, delete its folder:
-
-Linux / macOS:
-
-```bash
-rm -rf .firefox-profiles/ff-carsenlatva53139_outlook.com
-```
-
-Windows PowerShell:
+Reset one profile (PowerShell):
 
 ```powershell
 Remove-Item -Recurse -Force .\.firefox-profiles\ff-carsenlatva53139_outlook.com
 ```
+
+---
 
 ## Staging workflow (old test site — not Reddit)
 
@@ -81,8 +137,7 @@ Remove-Item -Recurse -Force .\.firefox-profiles\ff-carsenlatva53139_outlook.com
 | `npm run test:server` | Fake register site `:3456` |
 | `npm run workflow:test` | One staging registration |
 
-## Config knobs
+## Config
 
-- `config/creation-app.cjs` — `batchSize`, `registerAfterLogin`, proxy, profiles dir  
-- `.env` — `HEADLESS`, `SLOW_MO`, `PROXY_ENABLED`, `TEST_USERS_FILE`
-- Windows install: [WINDOWS.md](WINDOWS.md)  
+- `config/creation-app.cjs` — batch size, proxy, profiles dir  
+- `.env` — `HEADLESS`, `PROXY_ENABLED`, `USE_SYSTEM_FIREFOX`, `TEST_USERS_FILE`

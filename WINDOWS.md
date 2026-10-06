@@ -4,7 +4,9 @@ This is the same pipeline that already runs on Linux and macOS:
 
 Outlook login → Reddit register → OTP from Outlook inbox → `data/reddit-accounts.csv`
 
-On Windows it still uses **Playwright’s Firefox**, not the Mozilla installer from firefox.com. Each Outlook email still gets one folder under `.firefox-profiles\`.
+Default browser is **Playwright Firefox**. For installed **Mozilla Firefox**, set `USE_SYSTEM_FIREFOX=true` (see [PROFILES.md](PROFILES.md)). Each Outlook email gets one folder under `.firefox-profiles\`.
+
+**Ready-made PowerShell scripts:** `scripts\windows\` — also listed in [SCRIPTS.md](SCRIPTS.md).
 
 ---
 
@@ -88,8 +90,6 @@ copy .env.example .env
 
 ### `.env` (typical Windows)
 
-Keep these as-is unless you know you need otherwise:
-
 ```env
 HEADLESS=false
 SLOW_MO=0
@@ -97,9 +97,22 @@ PROXY_ENABLED=true
 PROXY_FILE=proxy details
 TEST_USERS_FILE=email data.txt
 PROFILES_DIR=.firefox-profiles
+USE_SYSTEM_FIREFOX=false
 ```
 
-Leave `FIREFOX_PATH` and `PLAYWRIGHT_FIREFOX_EXECUTABLE_PATH` **empty**.
+Set `USE_SYSTEM_FIREFOX=true` to use installed Mozilla Firefox. Or set `FIREFOX_PATH` to `firefox.exe`. Leave both off to use Playwright Firefox.
+
+### `proxy details` (HTTP or SOCKS5)
+
+```text
+http
+host: 1.2.3.4
+port: 8004
+username: yourUser
+password : yourPass
+```
+
+SOCKS5: change the first line to `socks5` (and usually port `1080`). Spaces around `:` are fine. Without a proxy: `PROXY_ENABLED=false` in `.env`.
 
 ### `email data.txt`
 
@@ -115,22 +128,6 @@ uuid,''Email@outlook.com,,password,,,,,,,,,,,,
 
 Windows Excel/Notepad UTF-16 and a leading BOM are accepted.
 
-### `proxy details`
-
-Same folder as `email data.txt`:
-
-```text
-http
-host: 1.2.3.4
-port: 8004
-username: yourUser
-password : yourPass
-```
-
-Spaces around `:` are fine. Extra spaces in the username are trimmed.
-
-To run **without** a proxy, set `PROXY_ENABLED=false` in `.env`.
-
 ---
 
 ## 6. Windows Defender / firewall (first run)
@@ -143,35 +140,46 @@ On the first `npx playwright install firefox` or `npm run create:one`:
 
 ---
 
-## 7. Run
+## 7. Run (PowerShell)
 
-Use **PowerShell** from the project folder. Scripts are identical to Linux/Mac (`npm run …`).
+From the project folder:
+
+```powershell
+# allow .ps1 for this window only
+Set-ExecutionPolicy -Scope Process Bypass
+
+# first time / after pull
+.\scripts\windows\setup.ps1
+
+# list emails (no browser)
+.\scripts\windows\create-accounts.ps1
+
+# smoke test — first email (opens Firefox)
+.\scripts\windows\create-one.ps1
+
+# full queue
+.\scripts\windows\create-all.ps1
+```
+
+Same via npm:
 
 ```powershell
 npm run create:accounts
-```
-
-You should see profile names like `ff-name_outlook.com` and **Registry is clean**.
-
-Smoke-test **one** account (opens a visible Firefox window):
-
-```powershell
 npm run create:one
-```
-
-Full queue:
-
-```powershell
 npm run create
 ```
 
-Other commands: [SCRIPTS.md](SCRIPTS.md).
-
-Optional inspect (PowerShell extra `--` is required so flags reach Node):
+Inspect / reopen a profile folder:
 
 ```powershell
+.\scripts\windows\inspect.ps1 -Email someone@outlook.com
+.\scripts\windows\open-profile.ps1 -Email someone@outlook.com
+
+# npm form (extra -- required in PowerShell):
 npm run create:inspect -- --email=someone@outlook.com
 ```
+
+More: [SCRIPTS.md](SCRIPTS.md).
 
 ---
 
@@ -209,7 +217,7 @@ Then run `npm run create:one` again (or `create` for the full file).
 |---------|-----|
 | `'node' is not recognized` | Reinstall Node LTS with PATH; new terminal |
 | `Playwright Firefox is not installed` | `npx playwright install firefox` |
-| Launch points at `Mozilla Firefox\firefox.exe` | Unset `FIREFOX_PATH` in `.env` |
+| Mozilla Firefox launch fails | Install Firefox, or unset `USE_SYSTEM_FIREFOX` / `FIREFOX_PATH` to use Playwright |
 | Profile locked / already in use | Close leftover Firefox; delete that `.firefox-profiles\ff-…` folder |
 | `create:accounts` finds 0 emails | Save `email data.txt` as UTF-8 in the project root; check tabs vs commas |
 | Proxy timeout / Outlook never loads | Confirm `PROXY_ENABLED=true` and `proxy details`; test the proxy in a browser |
