@@ -33,9 +33,9 @@ module.exports = {
             String(process.env.HEADLESS || 'false').toLowerCase()
         ),
         slowMoMs: Number(process.env.SLOW_MO || 0) || 0,
-        // true = launch system Mozilla Firefox (about:-compatible profile dirs via -profile)
-        useSystemFirefox: ['1', 'true', 'yes', 'on'].includes(
-            String(process.env.USE_SYSTEM_FIREFOX || 'false').toLowerCase()
+        // Prefer installed Mozilla Firefox (AdsPower-like). Set USE_SYSTEM_FIREFOX=false for Playwright Nightly.
+        useSystemFirefox: !['0', 'false', 'no', 'off'].includes(
+            String(process.env.USE_SYSTEM_FIREFOX || 'true').toLowerCase()
         ),
         executablePath:
             process.env.PLAYWRIGHT_FIREFOX_EXECUTABLE_PATH ||

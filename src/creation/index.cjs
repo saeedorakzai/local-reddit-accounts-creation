@@ -13,9 +13,25 @@ const fs = require('fs');
 
 const PROJECT_ROOT = require('./projectRoot');
 
-// Load outer .env before config/creation-app.js reads process.env
+// Load .env (Windows Notepad often saves as ".env.txt")
 try {
-    require('dotenv').config({ path: path.join(PROJECT_ROOT, '.env') });
+    const dotenv = require('dotenv');
+    const envCandidates = ['.env', '.env.txt'];
+    let loaded = false;
+    for (const name of envCandidates) {
+        const p = path.join(PROJECT_ROOT, name);
+        if (fs.existsSync(p)) {
+            dotenv.config({ path: p });
+            if (name !== '.env') {
+                console.warn(`⚠️ Loaded env from "${name}" — rename to ".env" when you can`);
+            }
+            loaded = true;
+            break;
+        }
+    }
+    if (!loaded) {
+        console.warn('⚠️ No .env found — using defaults (Playwright Firefox unless USE_SYSTEM_FIREFOX=true)');
+    }
 } catch {
     // dotenv optional
 }

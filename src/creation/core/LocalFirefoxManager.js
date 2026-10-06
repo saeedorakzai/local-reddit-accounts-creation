@@ -137,17 +137,33 @@ function parseProxyFile(filePath) {
     };
 }
 
+function resolveProxyFilePath(firefoxConfig) {
+    const configured = firefoxConfig.proxyFile || 'proxy details';
+    const candidates = [
+        configured,
+        `${configured}.txt`,
+        'proxy details',
+        'proxy details.txt',
+        'proxy-details.txt'
+    ];
+    const seen = new Set();
+    for (const name of candidates) {
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        const filePath = path.isAbsolute(name) ? name : path.join(PROJECT_ROOT, name);
+        if (fs.existsSync(filePath)) return filePath;
+    }
+    return null;
+}
+
 function loadProxy(firefoxConfig) {
     if (!firefoxConfig?.proxyEnabled) return null;
 
     let proxy = null;
-    if (firefoxConfig.proxyFile) {
-        const filePath = path.isAbsolute(firefoxConfig.proxyFile)
-            ? firefoxConfig.proxyFile
-            : path.join(PROJECT_ROOT, firefoxConfig.proxyFile);
-        if (fs.existsSync(filePath)) {
-            proxy = parseProxyFile(filePath);
-        }
+    const filePath = resolveProxyFilePath(firefoxConfig);
+    if (filePath) {
+        proxy = parseProxyFile(filePath);
+        console.log(`📄 Proxy file: ${filePath}`);
     }
 
     if (!proxy && firefoxConfig.proxyHost && firefoxConfig.proxyPort) {
