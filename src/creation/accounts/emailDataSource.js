@@ -16,6 +16,23 @@ const path = require('path');
 const PROJECT_ROOT = require('../projectRoot');
 const { registerSecret } = require('../shared/redact');
 
+/** UTF-8 / UTF-16 / BOM — Notepad and Excel on Windows often save UTF-16. */
+function readTextFile(filePath) {
+    const buf = fs.readFileSync(filePath);
+    if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) {
+        return buf.toString('utf16le').replace(/^\uFEFF/, '');
+    }
+    if (buf.length >= 2 && buf[0] === 0xfe && buf[1] === 0xff) {
+        const swapped = Buffer.alloc(buf.length - 2);
+        for (let i = 2; i + 1 < buf.length; i += 2) {
+            swapped[i - 2] = buf[i + 1];
+            swapped[i - 1] = buf[i];
+        }
+        return swapped.toString('utf16le');
+    }
+    return buf.toString('utf8').replace(/^\uFEFF/, '');
+}
+
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -60,7 +77,7 @@ function loadAccountsFromEmailData(filePath, projectRoot = PROJECT_ROOT) {
         throw new Error(`Credentials file not found: ${filePath}`);
     }
 
-    const lines = fs.readFileSync(resolved, 'utf8').split(/\r?\n/);
+    const lines = readTextFile(resolved).split(/\r?\n/);
     const accounts = [];
     const skipped = [];
     const duplicates = [];
@@ -164,5 +181,6 @@ module.exports = {
     loadAccountsFromEmailData,
     cleanEmail,
     isValidEmail,
-    parseTabLine
+    parseTabLine,
+    readTextFile
 };

@@ -13,6 +13,8 @@ const PROJECT_ROOT = require('../projectRoot');
 const { humanizeBrowser } = require('../shared/humanize');
 const { randomInt } = require('../config/instanceConfig');
 
+const WIN_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+
 function pickMs(range, fallback) {
     if (range == null) return fallback;
     if (typeof range === 'number') return range;
@@ -21,7 +23,7 @@ function pickMs(range, fallback) {
 }
 
 function parseProxyFile(filePath) {
-    const raw = fs.readFileSync(filePath, 'utf8').trim();
+    const raw = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '').trim();
     if (!raw) throw new Error(`Proxy file empty: ${filePath}`);
 
     const first = raw.split(/\r?\n/)[0].trim();
@@ -111,7 +113,9 @@ class LocalFirefoxManager {
     }
 
     ensureProfileDir(profileId) {
-        const safe = String(profileId).replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
+        let safe = String(profileId).replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
+        safe = safe.replace(/[.\s]+$/g, '');
+        if (WIN_RESERVED.test(safe)) safe = `ff-${safe}`;
         const root = this.profilesRoot();
         fs.mkdirSync(root, { recursive: true });
         const dir = path.join(root, safe);
@@ -121,6 +125,18 @@ class LocalFirefoxManager {
             fs.writeFileSync(marker, `created=${new Date().toISOString()}\n`, 'utf8');
         }
         return dir;
+    }
+
+    /** Stale Firefox lock files (common after a crash on Windows). */
+    clearStaleLocks(profileDir) {
+        for (const name of ['parent.lock', 'lock', '.parentlock']) {
+            const lockPath = path.join(profileDir, name);
+            try {
+                if (fs.existsSync(lockPath)) fs.unlinkSync(lockPath);
+            } catch {
+                // still held by a live process — launch will fail with a clearer error
+            }
+        }
     }
 
     async startProfile(profileId) {
@@ -137,6 +153,12 @@ class LocalFirefoxManager {
 
         if (this.firefoxConfig.executablePath) {
             launchOptions.executablePath = this.firefoxConfig.executablePath;
+            if (/Mozilla Firefox[/\\]firefox(\.exe)?$/i.test(this.firefoxConfig.executablePath)) {
+                console.warn(
+                    '⚠️ FIREFOX_PATH points at system Mozilla Firefox. Playwright needs its own Firefox:\n' +
+                    '   npx playwright install firefox'
+                );
+            }
         }
 
         if (proxy) {
@@ -146,10 +168,31 @@ class LocalFirefoxManager {
             console.log('🌐 No proxy configured for this profile');
         }
 
-        console.log(`🦊 Launching local Firefox profile: ${profileId}`);
+        console.log(`🦊 Launching local Firefox profile: ${profileId}  (${process.platform})`);
         console.log(`   dir: ${this.profileDir}`);
 
-        this.context = await firefox.launchPersistentContext(this.profileDir, launchOptions);
+        this.clearStaleLocks(this.profileDir);
+
+        try {
+            this.context = await firefox.launchPersistentContext(this.profileDir, launchOptions);
+        } catch (error) {
+            const message = error && error.message ? error.message : String(error);
+            if (/already in use|profile is already|Failed to create a ProcessSingleton|Target page, context or browser has been closed/i.test(message)) {
+                throw new Error(
+                    `Firefox profile is locked or already open (${profileId}). ` +
+                    `Close other Firefox windows using this profile, then retry. ` +
+                    `On Windows you can also delete: ${this.profileDir}`
+                );
+            }
+            if (/Executable doesn't exist|browserType\.launchPersistentContext/i.test(message)) {
+                throw new Error(
+                    `Playwright Firefox is not installed. From the project folder run:\n` +
+                    `   npx playwright install firefox\n` +
+                    `Original: ${message}`
+                );
+            }
+            throw error;
+        }
         // Persistent contexts often return null from browser() — humanize needs a Browser.
         this.browser = this.context.browser();
 

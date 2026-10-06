@@ -12,17 +12,24 @@ No AdsPower. Runtime code lives under `src/creation/`.
 
 ## Quick start
 
+Linux / macOS:
+
 ```bash
 npm install
 npx playwright install firefox
-
-# Put Outlook rows in email data.txt (see formats below)
-# Optional: proxy details + PROXY_* in .env
-
-npm run create:accounts   # parse queue — no browser
-npm run create:one        # first email only
-npm run create            # full queue
+npm run create:accounts
+npm run create:one
 ```
+
+**Windows (PowerShell):** full install from Node.js through first run is in **[WINDOWS.md](WINDOWS.md)**.
+
+```powershell
+npm install
+npx playwright install firefox
+npm run create:accounts
+npm run create:one
+```
+
 
 ## Scripts
 
@@ -78,6 +85,8 @@ CarsenLatva53139@outlook.com
 ```
 
 Playwright launches Firefox with `launchPersistentContext` + optional proxy. Cookies stay in that folder so re-runs can reuse Outlook sessions.
+
+On Windows the folder is `.firefox-profiles\ff-<email>\` and the browser is still Playwright Firefox (not the Mozilla installer). See [WINDOWS.md](WINDOWS.md).
 
 ## Config
 

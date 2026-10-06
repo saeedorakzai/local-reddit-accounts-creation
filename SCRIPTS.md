@@ -28,6 +28,8 @@ npm run create            # full queue
 npm run create:inspect -- --email=someone@outlook.com
 ```
 
+On Windows PowerShell the extra `--` is required so `--email` reaches Node.
+
 ## Email file formats (`email data.txt`)
 
 ```text
@@ -60,8 +62,16 @@ Profiles are **not** AdsPower instances. They are local Playwright persistent co
 
 To force a clean browser for one account, delete its folder:
 
+Linux / macOS:
+
 ```bash
 rm -rf .firefox-profiles/ff-carsenlatva53139_outlook.com
+```
+
+Windows PowerShell:
+
+```powershell
+Remove-Item -Recurse -Force .\.firefox-profiles\ff-carsenlatva53139_outlook.com
 ```
 
 ## Staging workflow (old test site — not Reddit)
@@ -74,4 +84,5 @@ rm -rf .firefox-profiles/ff-carsenlatva53139_outlook.com
 ## Config knobs
 
 - `config/creation-app.cjs` — `batchSize`, `registerAfterLogin`, proxy, profiles dir  
-- `.env` — `HEADLESS`, `SLOW_MO`, `PROXY_ENABLED`, `TEST_USERS_FILE`  
+- `.env` — `HEADLESS`, `SLOW_MO`, `PROXY_ENABLED`, `TEST_USERS_FILE`
+- Windows install: [WINDOWS.md](WINDOWS.md)  
